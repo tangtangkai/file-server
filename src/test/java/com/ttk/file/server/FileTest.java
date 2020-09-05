@@ -1,9 +1,7 @@
 package com.ttk.file.server;
 
-import com.alibaba.druid.support.json.JSONUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.ttk.file.server.domain.UploadedFile;
+import com.ttk.file.server.domain.enums.DeleteStatus;
 import com.ttk.file.server.repository.UploadFileRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,9 +23,9 @@ public class FileTest {
     UploadFileRepository fileRepository;
 
     @Test
-    public void fun(){
-        List<UploadedFile> all = fileRepository.findAll();
-        for (UploadedFile file:all){
+    public void fun() {
+        List<UploadedFile> files = fileRepository.findByDeleted(DeleteStatus.DELETED.getStatus());
+        for (UploadedFile file : files) {
             System.out.println(file.toString());
         }
     }

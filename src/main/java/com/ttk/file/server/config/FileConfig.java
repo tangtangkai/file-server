@@ -14,5 +14,5 @@ import java.util.Map;
 @RefreshScope
 @ConfigurationProperties(prefix = "application")
 public class FileConfig {
-    private Map<String,Object> file;
+    private Map<String, String> file;
 }
