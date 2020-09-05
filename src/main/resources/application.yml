@@ -1,0 +1,25 @@
+app:
+  id: ttk-file-server #应用的唯一标识，必须和网页上的一一对应
+apollo:
+  meta: http://192.168.137.180:8080 #加入meta地址，在主页上有该信息
+  bootstrap:
+    namespaces: application
+    enabled: true  #默认注入application NameSpace的配置
+    eagerLoad:
+      enabled: true #将配置的加载提到日志初始化之前
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB #单个文件最大值
+      max-request-size: 20MB #多个文件上传最大值
+  datasource:
+    url: jdbc:mysql://192.168.137.180:3306/tangtangkai
+    type: com.alibaba.druid.pool.DruidDataSource
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
