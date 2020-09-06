@@ -15,6 +15,7 @@ public class HealthController {
 
     @GetMapping("/health/{value}")
     public Resp<String> getConfig(@PathVariable String value) {
+        System.out.println("nihao");
         return Resp.ofSuccess(fileConfig.getFile().get(value));
     }
 }

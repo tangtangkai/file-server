@@ -9,7 +9,8 @@ public enum FileType {
 
     /*图片1开头*/
     JPG(101, "image/jpeg", "jpg格式图片", ".jpg"),
-    PNG(102, "image/png", "png格式图片", ".png");
+    JPEG(102, "image/jpeg", "jpeg格式图片", ".jpeg"),
+    PNG(103, "image/png", "png格式图片", ".png");
 
     private final int code;
 

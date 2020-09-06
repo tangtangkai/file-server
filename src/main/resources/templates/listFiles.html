@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" content="text/html" http-equiv="Content-Type">
+    <title>listFiles</title>
+</head>
+<body>
+<form th:action="@{/file/page/upload}" action="#" method="post" enctype="multipart/form-data">
+    <div>
+        <input type="file" name="file" accept="image/*"><br>
+    </div>
+    <div>
+        <input type="submit" value="上传" class="btn btn-success"><br>
+    </div>
+</form>
+<div id="app">
+    {{message}}
+</div>
+
+<div>
+    <table align="center" border="1" cellspacing="0">
+        <tr>
+            <td>fileId</td>
+            <td>fileName</td>
+            <td>filePath</td>
+            <td>fileType</td>
+            <td>contentType</td>
+            <td>createTime</td>
+            <td>updateTime</td>
+            <td style="left: auto">查看</td>
+            <td style="left: auto">删除</td>
+        </tr>
+
+        <tr th:each="item:${files}">
+            <td th:text="${item.getFileId()}"></td>
+            <td th:text="${item.getFileName()}"></td>
+            <td th:text="${item.getFilePath()}"></td>
+            <td th:text="${item.getFileType()}"></td>
+            <td th:text="${item.getContentType()}"></td>
+            <td th:text="${item.getCreateTime()}"></td>
+            <td th:text="${item.getUpdateTime()}"></td>
+            <td><a th:href="@{/file/page/showById(id=${item.getFileId()})}">查看</a></td>
+            <td><a th:href="@{/file/page/deleteById(id=${item.getFileId()})}">删除</a></td>
+        </tr>
+    </table>
+</div>
+
+</body>
+
+</html>

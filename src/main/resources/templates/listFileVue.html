@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml"
+>
+<head>
+    <meta charset="UTF-8" content="text/html" http-equiv="Content-Type">
+    <title>list for vue</title>
+</head>
+<body>
+<div id="app">
+    <form @submit.prevent="uploadFile($event)">
+        <div>
+            <input type="file" name="file" accept="image/*"><br>
+            <input type="submit" value="上传" class="btn btn-success">
+            <p v-text="upload_res"></p><br>
+        </div>
+    </form>
+    <table align="center" border="1" cellspacing="0">
+        <tr>
+            <td>fileId</td>
+            <td>fileName</td>
+            <td>filePath</td>
+            <td>fileType</td>
+            <td>contentType</td>
+            <td>createTime</td>
+            <td>updateTime</td>
+            <td style="left: auto">查看</td>
+            <td style="left: auto">删除</td>
+        </tr>
+        <tr v-for="info in list">
+            <td v-text="info.fileId"></td>
+            <td v-text="info.fileName"></td>
+            <td v-text="info.filePath"></td>
+            <td v-text="info.fileType"></td>
+            <td v-text="info.contentType"></td>
+            <td v-text="info.createTime"></td>
+            <td v-text="info.updateTime"></td>
+            <td>
+                <button v-on:click="showById(info.fileId)" class="button">查看</button>
+            </td>
+            <td>
+                <button v-on:click="deletedById(info.fileId)" class="button">删除</button>
+            </td>
+            <!--<td><a th:href="@{/file/page/deleteById(id=${item.getFileId()})}">删除</a></td>-->
+        </tr>
+    </table>
+</div>
+<script th:src="@{/webjars/vue/vue.js}"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script th:inline="javascript">
+    var app = new Vue({
+        el: '#app',
+        data: {
+            list: [],
+            upload_res: ''
+        },
+        created: function () {
+            var _this = this;
+            axios.get("/file/getAll").then(function (response) {
+                _this.list = response.data.data;
+            }, function (err) {
+                console.log(err);
+            });
+        },
+        // 在 `methods` 对象中定义方法
+        methods: {
+            /*请求删除文件代码*/
+            deletedById: function (id) {
+                axios({
+                    method: "post",
+                    url: "/file/deleteById?id=" + id
+                }).then(function (value) {
+                }, function (err) {
+                    console.log(err);
+                });
+                window.location.reload();
+            },
+            /*展示图片按钮*/
+            showById: function (id) {
+                window.location.href = "/file/page/showById?id=" + id;
+            },
+            /*上传图片文件代码*/
+            uploadFile: function (event) {
+                var _this = this;
+                var formData = new FormData(event.target);
+                axios({
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    method: "post",
+                    url: "/file/upload",
+                    data: formData
+                });
+                _this.upload_res = "上传成功";
+                window.setTimeout("window.location.reload()", 2000);
+            }
+        }
+    });
+</script>
+</body>
+</html>

@@ -3,23 +3,20 @@ package com.ttk.file.server.controller;
 import com.ttk.file.server.config.FileConfig;
 import com.ttk.file.server.domain.Resp;
 import com.ttk.file.server.domain.UploadedFile;
-import com.ttk.file.server.domain.enums.DeleteStatus;
-import com.ttk.file.server.domain.enums.FileType;
-import com.ttk.file.server.repository.UploadFileRepository;
-import com.ttk.file.server.utils.GetSuffixUtil;
+import com.ttk.file.server.service.IFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author root
@@ -31,31 +28,16 @@ public class FileUploadController {
 
     private final static String OPERATION_SUCCESS = "操作成功";
 
-
     @Autowired
     private FileConfig fileConfig;
 
     @Autowired
-    UploadFileRepository uploadFileRepository;
+    private IFileService fileService;
 
     @PostMapping("/upload")
     public Resp<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        String realName = fileConfig.getFile().get("path") +
-                File.separator + UUID.randomUUID().toString().replace("-", "") + file.getOriginalFilename();
-        File dest = new File(realName);
-        if (!dest.getParentFile().exists()) {
-            boolean mkdir = dest.getParentFile().mkdirs();
-            if (mkdir) {
-                file.transferTo(dest);
-                saveFile(dest);
-                log.info("文件上传成功！");
-                return Resp.ofSuccess(dest.getAbsolutePath());
-            }
-        }
-        file.transferTo(dest);
-        saveFile(dest);
-        log.info("文件上传成功！");
-        return Resp.ofSuccess(dest.getAbsolutePath());
+        String upload = fileService.upload(file);
+        return Resp.ofSuccess(upload);
     }
 
     /**
@@ -65,7 +47,7 @@ public class FileUploadController {
      */
     @GetMapping("/getAll")
     public Resp<List<UploadedFile>> getAll() {
-        List<UploadedFile> all = uploadFileRepository.findAll();
+        List<UploadedFile> all = fileService.getAllFiles();
         return Resp.ofSuccess(all);
     }
 
@@ -76,7 +58,7 @@ public class FileUploadController {
      */
     @GetMapping("/getAllNotDeleted")
     public Resp<List<UploadedFile>> getAllNotDeleted() {
-        List<UploadedFile> files = uploadFileRepository.findByDeleted(DeleteStatus.NOT_DELETE.getStatus());
+        List<UploadedFile> files = fileService.getAllNotDeleted();
         return Resp.ofSuccess(files);
     }
 
@@ -90,7 +72,7 @@ public class FileUploadController {
      */
     @GetMapping("/getFileById")
     public Resp<String> getFileById(@RequestParam long id, HttpServletResponse response) throws IOException {
-        UploadedFile one = uploadFileRepository.getOne(id);
+        UploadedFile one = fileService.getFileById(id);
         RandomAccessFile file = new RandomAccessFile(one.getFilePath(), "rw");
         int bufferSize = new Integer(fileConfig.getFile().get("buffer"));
         byte[] buffer = new byte[bufferSize];
@@ -116,10 +98,7 @@ public class FileUploadController {
      */
     @PostMapping("/tombstoneById")
     public Resp<String> tombstoneById(@RequestParam long id) {
-        UploadedFile one = uploadFileRepository.getOne(id);
-        one.setDeleted(DeleteStatus.DELETED.getStatus());
-        one.setUpdateTime(new Date());
-        uploadFileRepository.save(one);
+        fileService.tombstoneById(id);
         return Resp.ofSuccess(OPERATION_SUCCESS);
     }
 
@@ -131,37 +110,9 @@ public class FileUploadController {
      * @throws IOException
      */
     @PostMapping("/deleteById")
-    public Resp<String> deleteById(@RequestParam long id) throws IOException {
-        UploadedFile one = uploadFileRepository.getOne(id);
-        File file = new File(one.getFilePath());
-        boolean delete = file.delete();
-        if (!delete) {
-            log.error("文件删除失败，[path]={}", one.getFilePath());
-            throw new RuntimeException("文件删除失败");
-        }
-        log.info("文件删除成功，[path]={}", one.getFilePath());
-        uploadFileRepository.deleteById(id);
+    public Resp<String> deleteById(@RequestParam Long id) throws IOException {
+        fileService.deleteById(id);
         return Resp.ofSuccess(OPERATION_SUCCESS);
     }
 
-    private void saveFile(File dest) {
-        UploadedFile uploadedFile = new UploadedFile();
-        String suffix = GetSuffixUtil.getSuffix(dest.getName());
-        uploadedFile.setFileName(dest.getName());
-        uploadedFile.setFilePath(dest.getAbsolutePath());
-        Optional<FileType> fileType = FileType.valueOfBySuffix(suffix);
-        if (fileType.isPresent()) {
-            FileType type = fileType.get();
-            String contentType = type.getContentType();
-            uploadedFile.setFileType(type.getCode());
-            uploadedFile.setContentType(contentType);
-        } else {
-            throw new RuntimeException("上传失败，上传的文件类型不存在");
-        }
-        Date now = new Date();
-        uploadedFile.setDeleted(DeleteStatus.NOT_DELETE.getStatus());
-        uploadedFile.setCreateTime(now);
-        uploadedFile.setUpdateTime(now);
-        uploadFileRepository.save(uploadedFile);
-    }
 }
