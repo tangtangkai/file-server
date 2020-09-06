@@ -17,7 +17,6 @@
     <table align="center" border="1" cellspacing="0">
         <tr>
             <td>fileId</td>
-            <td>fileName</td>
             <td>filePath</td>
             <td>fileType</td>
             <td>contentType</td>
@@ -28,7 +27,6 @@
         </tr>
         <tr v-for="info in list">
             <td v-text="info.fileId"></td>
-            <td v-text="info.fileName"></td>
             <td v-text="info.filePath"></td>
             <td v-text="info.fileType"></td>
             <td v-text="info.contentType"></td>
@@ -89,8 +87,9 @@
                     method: "post",
                     url: "/file/upload",
                     data: formData
+                }).then(function (value) {
+                    _this.upload_res = value.data.msg;
                 });
-                _this.upload_res = "上传成功";
                 window.setTimeout("window.location.reload()", 2000);
             }
         }
